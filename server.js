@@ -6,9 +6,6 @@ const connectDB = require('./config/db');
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
-
 const authRoutes = require('./routes/authRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
@@ -22,6 +19,17 @@ app.use(express.json());
 
 // Enable CORS
 app.use(cors());
+
+// Ensure database is connected before handling any requests
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error('Failed to connect to database in middleware:', error);
+        res.status(500).json({ message: 'Database connection failed', error: error.message });
+    }
+});
 
 // Mount routers
 app.use('/api/auth', authRoutes);
